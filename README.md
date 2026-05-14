@@ -9,7 +9,7 @@
 
 **A modern QR code studio with logo support, social link generation, theme switching, and improved customization.**
 
-👉 **Live Demo:** [mounirverse.github.io/QR-Studio](https://mounirverse.github.io/QR-Studio/)
+👉 **Live Demo:** [mounir-zx.github.io/QR-Studio/](https://mounir-zx.github.io/QR-Studio/)
 
 ---
 
@@ -34,7 +34,7 @@
 
 ### Use Online
 
-1. **Visit** [mounirverse.github.io/QR-Studio](https://mounirverse.github.io/QR-Studio/) to start generating your QR codes instantly!
+1. **Visit** [mounir-zx.github.io/QR-Studio/](https://mounir-zx.github.io/QR-Studio/) to start generating your QR codes instantly!
 
 ### Run Locally
 
@@ -68,7 +68,7 @@ Hosting: GitHub Pages for live deployment.
 
 
 🌍 Live Demo
-Try it now: [QR Studio Demo](https://mounirverse.github.io/QR-Studio/)
+Try it now: [QR Studio Demo](https://mounir-zx.github.io/QR-Studio/)
 
 📜 License
 Open-source under the MIT License. Feel free to use, modify, and distribute this project, just provide attribution.
