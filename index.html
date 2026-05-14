@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            /* Light theme (default) */
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --text-color: #2b2d42;
+            --bg-color: #f8f9fa;
+            --input-bg: #ffffff;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #7289da;
+            --secondary-color: #5865f2;
+            --text-color: #ffffff;
+            --bg-color: #23272a;
+            --input-bg: #2c2f33;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: var(--input-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-top: 5rem;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+        }
+
+        input[type="text"],
+        input[type="url"] {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .type-selector {
+            background: var(--bg-color);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .type-selector label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .social-media-container {
+            background: var(--bg-color);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        #qrcode {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #qrcode canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 50px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            padding: 20px;
+            background: white;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1rem;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .type-section {
+            display: none;  /* Cache toutes les sections par défaut */
+        }
+
+        .type-section.active {
+            display: block;  /* Affiche uniquement la section active */
+        }
+
+        .hidden {
+            display: none !important;  /* Force le masquage des éléments avec la classe hidden */
+        }
+
+        /* Style pour les sections de réseaux sociaux */
+        .social-inputs .form-group {
+            display: none;  /* Cache tous les inputs de réseaux sociaux par défaut */
+        }
+
+        .social-inputs .form-group:not(.hidden) {
+            display: block;  /* Affiche uniquement les inputs de réseaux sociaux sélectionnés */
+        }
+
+        /* Style pour les titres des sections */
+        .social-media-container h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+
+        /* Amélioration du style des checkboxes */
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        /* Animation de transition pour les sections */
+        .type-section, .social-inputs .form-group {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .download-btn {
+            background-color: var(--secondary-color);
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .logo-upload {
+            display: none; /* Hidden by default */
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: var(--bg-color);
+            border-radius: var(--border-radius);
+        }
+
+        .logo-upload.active {
+            display: block;
+        }
+
+        .logo-toggle {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            background: var(--bg-color);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+        }
+
+        .logo-toggle label {
+            margin: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-input-container {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            border: 2px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: white;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;  /* Add space between input and preview */
+        }
+
+        .file-input-container:hover {
+            background: #f8f9fa;
+            border-color: var(--secondary-color);
+        }
+
+        .file-input-container input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-input-content {
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .file-input-content i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .file-input-content p {
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .logo-preview-container {
+            width: 300px;  /* Augmenté pour mieux représenter le QR */
+            height: 300px;
+            margin: 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            position: relative;
+        }
+
+        .logo-preview-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, #0002 25%, transparent 25%) -40px 0,
+                linear-gradient(-45deg, #0002 25%, transparent 25%) -40px 0,
+                linear-gradient(45deg, transparent 75%, #0002 75%) -40px 0,
+                linear-gradient(-45deg, transparent 75%, #0002 75%) -40px 0;
+            background-size: 80px 80px;
+            opacity: 0.1;
+            border-radius: inherit;
+        }
+
+        .logo-preview {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+            background: white;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .qr-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .top-controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1rem;
+            padding: 15px 30px;
+            background: var(--input-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+        }
+
+        .lang-select {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 2px solid var(--primary-color);
+            padding: 8px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .lang-select:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .lang-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
+        }
+
+        .theme-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            margin: 0 10px;
+        }
+
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .theme-switch-label {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            border-radius: 34px;
+            transition: .4s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 8px;
+            overflow: hidden;
+        }
+
+        .theme-switch-label i {
+            font-size: 14px;
+            color: white;
+            transition: .4s;
+            z-index: 1;
+        }
+
+        .theme-switch-label .fa-sun {
+            color: #fff;
+            filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+        }
+
+        .theme-switch-label .fa-moon {
+            color: #7289da;
+        }
+
+        .theme-switch-label:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .4s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 0;
+        }
+
+        .theme-switch input:checked + .theme-switch-label {
+            background: linear-gradient(to right, #2c2f33, #7289da);
+        }
+
+        .theme-switch input:checked + .theme-switch-label:before {
+            transform: translateX(30px);
+        }
+
+        .theme-switch input:checked + .theme-switch-label .fa-sun {
+            color: #ffd700;
+        }
+
+        .theme-switch input:checked + .theme-switch-label .fa-moon {
+            color: #fff;
+            filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+        }
+
+        .theme-switch:hover .theme-switch-label:before {
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="top-controls">
+        <select id="langSelect" class="lang-select">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+        </select>
+        
+        <div class="theme-switch">
+            <input type="checkbox" id="themeToggle">
+            <label for="themeToggle" class="theme-switch-label">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon"></i>
+            </label>
+        </div>
+    </div>
+    <div class="form-container">
+        <h2 data-translate="title"><i class="fas fa-qrcode"></i> Générateur de QR Code</h2>
+        <form id="qrForm">
+            <div class="type-selector">
+                <label>
+                    <input type="radio" name="type" value="person" checked>
+                    <i class="fas fa-user"></i> <span data-translate="person">Personne</span>
+                </label>
+                <label>
+                    <input type="radio" name="type" value="organization">
+                    <i class="fas fa-building"></i> <span data-translate="organization">Organisation</span>
+                </label>
+            </div>
+
+            <div id="person-section" class="type-section active">
+                <div class="form-group">
+                    <label for="nom" data-translate="name">Nom:</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="nom" name="nom" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="prenom" data-translate="firstName">Prénom:</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="prenom" name="prenom" required>
+                    </div>
+                </div>
+            </div>
+
+            <div id="organization-section" class="type-section">
+                <div class="form-group">
+                    <label for="org-name" data-translate="orgName">Nom de l'organisation:</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-building"></i>
+                        <input type="text" id="org-name" name="org-name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="address" data-translate="address">Adresse:</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" id="address" name="address">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="website" data-translate="website">Site Web:</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-globe"></i>
+                    <input type="text" id="website" name="website" placeholder="exemple.com">
+                </div>
+            </div>
+            
+            <div class="social-media-container">
+                <h3><i class="fas fa-share-alt"></i> <span data-translate="socialNetworks">Réseaux Sociaux</span></h3>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" name="social-type" value="facebook">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </label>
+                    <label>
+                        <input type="checkbox" name="social-type" value="twitter">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </label>
+                    <label>
+                        <input type="checkbox" name="social-type" value="linkedin">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </label>
+                    <label>
+                        <input type="checkbox" name="social-type" value="instagram">
+                        <i class="fab fa-instagram"></i> Instagram
+                    </label>
+                </div>
+                
+                <div class="social-inputs">
+                    <div id="facebook-input" class="form-group hidden">
+                        <label for="facebook">Facebook:</label>
+                        <div class="input-with-icon">
+                            <i class="fab fa-facebook"></i>
+                            <input type="text" id="facebook" name="facebook" placeholder="@username ou facebook.com/username">
+                        </div>
+                    </div>
+                    <div id="twitter-input" class="form-group hidden">
+                        <label for="twitter">Twitter:</label>
+                        <div class="input-with-icon">
+                            <i class="fab fa-twitter"></i>
+                            <input type="text" id="twitter" name="twitter" placeholder="@username ou twitter.com/username">
+                        </div>
+                    </div>
+                    <div id="linkedin-input" class="form-group hidden">
+                        <label for="linkedin">LinkedIn:</label>
+                        <div class="input-with-icon">
+                            <i class="fab fa-linkedin"></i>
+                            <input type="text" id="linkedin" name="linkedin" placeholder="username ou linkedin.com/in/username">
+                        </div>
+                    </div>
+                    <div id="instagram-input" class="form-group hidden">
+                        <label for="instagram">Instagram:</label>
+                        <div class="input-with-icon">
+                            <i class="fab fa-instagram"></i>
+                            <input type="text" id="instagram" name="instagram" placeholder="@username ou instagram.com/username">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logo-toggle">
+                <label>
+                    <input type="checkbox" id="toggleLogo">
+                    <i class="fas fa-image"></i> <span data-translate="addLogo">Ajouter un logo au QR code</span>
+                </label>
+            </div>
+
+            <div class="logo-upload">
+                <div class="form-group">
+                    <div class="file-input-container">
+                        <input type="file" id="logo" accept="image/*" onChange="previewLogo(event)">
+                        <div class="file-input-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p data-translate="dropLogo">Glissez votre logo ici ou cliquez pour sélectionner</p>
+                            <p style="font-size: 0.8rem; color: #666;" data-translate="format">Format: PNG, JPG (Max 2MB)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="logo-preview-container">
+                    <img id="logoPreview" 
+                         class="logo-preview" 
+                         src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+                         alt="Aperçu du logo">
+                </div>
+                <div class="qr-options">
+                    <label>
+                        <span data-translate="qrColor">Couleur du QR</span>
+                        <input type="color" id="qrColor" value="#000000">
+                    </label>
+                    <label>
+                        <span data-translate="logoSize">Taille du logo</span>
+                        <input type="range" id="logoSize" min="5" max="40" value="25">
+                        <span id="logoSizeValue">25%</span>
+                    </label>
+                    <label>
+                        <span data-translate="logoShape">Forme du logo</span>
+                        <input type="range" id="logoRadius" min="0" max="50" value="25">
+                        <span id="logoRadiusValue">25%</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" data-translate="generate">
+                <i class="fas fa-qrcode"></i> Générer QR Code
+            </button>
+        </form>
+        <div id="qrcode"></div>
+    </div>
+    <div class="footer">
+        <p>
+            <span data-translate="developedBy">Développé par</span>
+            <a href="#" target="_blank">Abes Mounir</a> 
+            &copy; 2025. 
+            <span data-translate="allRightsReserved">Tous droits réservés</span>
+        </p>
+    </div>
+
+    <script>
+        // Type selector handler
+        document.querySelectorAll('input[name="type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove active class from all sections
+                document.querySelectorAll('.type-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Get all input elements
+                const personInputs = ['nom', 'prenom'];
+                const orgInputs = ['org-name', 'address'];
+                
+                if (this.value === 'person') {
+                    // Activate person section
+                    document.getElementById('person-section').classList.add('active');
+                    
+                    // Set required attributes
+                    personInputs.forEach(id => {
+                        const input = document.getElementById(id);
+                        input.setAttribute('required', '');
+                    });
+                    orgInputs.forEach(id => {
+                        const input = document.getElementById(id);
+                        input.removeAttribute('required');
+                    });
+                } else {
+                    // Activate organization section
+                    document.getElementById('organization-section').classList.add('active');
+                    
+                    // Set required attributes
+                    orgInputs.forEach(id => {
+                        const input = document.getElementById(id);
+                        input.setAttribute('required', '');
+                    });
+                    personInputs.forEach(id => {
+                        const input = document.getElementById(id);
+                        input.removeAttribute('required');
+                    });
+                }
+            });
+        });
+
+        // Initialize form on page load
+        window.addEventListener('load', function() {
+            const defaultType = document.querySelector('input[name="type"]:checked').value;
+            if (defaultType === 'person') {
+                document.getElementById('org-name').removeAttribute('required');
+                document.getElementById('address').removeAttribute('required');
+            } else {
+                document.getElementById('nom').removeAttribute('required');
+                document.getElementById('prenom').removeAttribute('required');
+            }
+        });
+
+        // Add event listeners for checkboxes
+        document.querySelectorAll('input[name="social-type"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const inputDiv = document.getElementById(`${this.value}-input`);
+                if (this.checked) {
+                    inputDiv.classList.remove('hidden');
+                } else {
+                    inputDiv.classList.add('hidden');
+                    inputDiv.querySelector('input').value = '';
+                }
+            });
+        });
+
+        // Function to format URLs more concisely
+        function formatURL(url, type = 'website') {
+            if (!url) return '';
+            
+            url = url.trim();
+
+            // Function to check if string is a full URL
+            function isFullURL(str) {
+                return str.includes('http://') || str.includes('https://') || str.includes('.com');
+            }
+
+            // Handle social media URLs and usernames
+            switch(type) {
+                case 'facebook':
+                    if (isFullURL(url)) {
+                        // Extract username from full URL if provided
+                        const fbMatch = url.match(/facebook\.com\/([^\/\?]*)/);
+                        return fbMatch ? `https://facebook.com/${fbMatch[1]}` : url;
+                    }
+                    // Handle username (remove @ if present)
+                    return `https://facebook.com/${url.replace('@', '')}`;
+
+                case 'twitter':
+                    if (isFullURL(url)) {
+                        // Extract username from full URL if provided
+                        const twitterMatch = url.match(/twitter\.com\/([^\/\?]*)/);
+                        return twitterMatch ? `https://twitter.com/${twitterMatch[1]}` : url;
+                    }
+                    // Handle username (ensure @ is removed)
+                    return `https://twitter.com/${url.replace('@', '')}`;
+
+                case 'linkedin':
+                    if (isFullURL(url)) {
+                        // Keep the full LinkedIn URL if provided
+                        return url.startsWith('http') ? url : `https://${url}`;
+                    }
+                    // Handle username
+                    return `https://linkedin.com/in/${url.replace('@', '')}`;
+
+                case 'instagram':
+                    if (isFullURL(url)) {
+                        // Extract username from full URL if provided
+                        const instaMatch = url.match(/instagram\.com\/([^\/\?]*)/);
+                        return instaMatch ? `https://instagram.com/${instaMatch[1]}` : url;
+                    }
+                    // Handle username (remove @ if present)
+                    return `https://instagram.com/${url.replace('@', '')}`;
+
+                default:
+                    // Handle website URL
+                    if (isFullURL(url)) {
+                        return url.startsWith('http') ? url : `https://${url}`;
+                    }
+                    return `https://${url}.com`;
+            }
+        }
+
+        // Update placeholders to show both options
+        document.querySelectorAll('.social-inputs input[type="text"]').forEach(input => {
+            const type = input.id;
+            switch(type) {
+                case 'facebook':
+                    input.placeholder = '@username ou facebook.com/username';
+                    break;
+                case 'twitter':
+                    input.placeholder = '@username ou twitter.com/username';
+                    break;
+                case 'linkedin':
+                    input.placeholder = 'username ou linkedin.com/in/username';
+                    break;
+                case 'instagram':
+                    input.placeholder = '@username ou instagram.com/username';
+                    break;
+            }
+        });
+
+        // Function to apply rounded corners to preview
+        function updateLogoPreview() {
+            const preview = document.getElementById('logoPreview');
+            const radius = document.getElementById('logoRadius').value;
+            const size = document.getElementById('logoSize').value;
+            const containerSize = 300; // Taille du conteneur augmentée
+            
+            // Calculer la taille en pixels basée sur le pourcentage (comme dans le QR)
+            const pixelSize = Math.round((containerSize * size) / 100);
+            
+            preview.style.width = `${pixelSize}px`;
+            preview.style.height = `${pixelSize}px`;
+            preview.style.borderRadius = radius + '%';
+            preview.style.border = '2px solid var(--primary-color)';
+            preview.style.backgroundColor = 'white';
+
+            // Mettre à jour le texte de la taille avec des dimensions plus précises
+            document.getElementById('logoSizeValue').textContent = 
+                `${size}% (${Math.round(pixelSize)}x${Math.round(pixelSize)}px)`;
+        }
+
+        // Update the previewLogo function
+        function previewLogo(event) {
+            const preview = document.getElementById('logoPreview');
+            const file = event.target.files[0];
+            
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Le fichier est trop volumineux. Taille maximum: 2MB');
+                    event.target.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    updateLogoPreview();
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Update logo radius value display and preview
+        document.getElementById('logoRadius').addEventListener('input', function() {
+            const radius = this.value + '%';
+            document.getElementById('logoRadiusValue').textContent = radius;
+            updateLogoPreview();
+        });
+
+        // Update logo size value display
+        document.getElementById('logoSize').addEventListener('input', function() {
+            document.getElementById('logoSizeValue').textContent = this.value + '%';
+            updateLogoPreview();
+        });
+
+        // Update preview when toggling logo section
+        document.getElementById('toggleLogo').addEventListener('change', function() {
+            const logoSection = document.querySelector('.logo-upload');
+            if (this.checked) {
+                logoSection.classList.add('active');
+                updateLogoPreview();
+            } else {
+                logoSection.classList.remove('active');
+                document.getElementById('logo').value = '';
+                document.getElementById('logoPreview').style.display = 'none';
+            }
+        });
+
+        document.getElementById('qrForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const type = document.querySelector('input[name="type"]:checked').value;
+            let mainText = '';
+
+            if (type === 'person') {
+                const nom = document.getElementById('nom').value;
+                const prenom = document.getElementById('prenom').value;
+                mainText = `Nom: ${nom}\nPrénom: ${prenom}`;
+            } else {
+                const orgName = document.getElementById('org-name').value;
+                const address = document.getElementById('address').value;
+                mainText = `Organisation: ${orgName}\nAdresse: ${address}`;
+            }
+
+            // Format website URL
+            const websiteInput = document.getElementById('website').value;
+            const website = websiteInput ? formatURL(websiteInput) : '';
+            
+            // Get social media values with formatted URLs
+            let socialText = '';
+            const socialTypes = ['facebook', 'twitter', 'linkedin', 'instagram'];
+            
+            socialTypes.forEach(type => {
+                const input = document.getElementById(type);
+                if (input && !input.parentElement.classList.contains('hidden') && input.value) {
+                    const formattedUrl = formatURL(input.value, type);
+                    socialText += `\n${type.charAt(0).toUpperCase() + type.slice(1)}: ${formattedUrl}`;
+                }
+            });
+
+            // Create text to encode
+            const qrText = `${mainText}${website ? '\nSite Web: ' + website : ''}${socialText}`;
+
+            // Clear previous QR code
+            const qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = '';
+
+            try {
+                const canvas = document.createElement('canvas');
+                qrcodeDiv.appendChild(canvas);
+
+                // Get custom colors and logo settings
+                const qrColor = document.getElementById('qrColor').value;
+                const logoSize = document.getElementById('logoSize').value;
+                const logoFile = document.getElementById('logo').files[0];
+
+                // Generate QR code
+                const qr = new QRious({
+                    element: canvas,
+                    value: qrText,
+                    size: 1024,
+                    level: 'H',
+                    padding: 50,
+                    background: '#ffffff',
+                    foreground: qrColor
+                });
+
+                // Add logo if uploaded
+                if (logoFile) {
+                    const ctx = canvas.getContext('2d');
+                    const logo = new Image();
+                    
+                    logo.onload = function() {
+                        // Calculate logo size based on QR code size
+                        const qrSize = canvas.width - (2 * 50); // QR size minus padding
+                        const logoSizePercent = document.getElementById('logoSize').value / 100;
+                        const size = qrSize * logoSizePercent;
+                        
+                        // Center the logo
+                        const x = (canvas.width - size) / 2;
+                        const y = (canvas.height - size) / 2;
+                        const radius = document.getElementById('logoRadius').value / 100;
+                        
+                        // Clear the center area
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(x, y, size, size);
+                        
+                        // Create rounded rectangle/circle clip for logo
+                        ctx.save();
+                        ctx.beginPath();
+                        const cornerRadius = size * radius;
+                        
+                        // Draw rounded rectangle path
+                        ctx.moveTo(x + cornerRadius, y);
+                        ctx.lineTo(x + size - cornerRadius, y);
+                        ctx.quadraticCurveTo(x + size, y, x + size, y + cornerRadius);
+                        ctx.lineTo(x + size, y + size - cornerRadius);
+                        ctx.quadraticCurveTo(x + size, y + size, x + size - cornerRadius, y + size);
+                        ctx.lineTo(x + cornerRadius, y + size);
+                        ctx.quadraticCurveTo(x, y + size, x, y + size - cornerRadius);
+                        ctx.lineTo(x, y + cornerRadius);
+                        ctx.quadraticCurveTo(x, y, x + cornerRadius, y);
+                        ctx.closePath();
+                        
+                        // Add white background for logo
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fill();
+                        
+                        ctx.clip();
+                        
+                        // Draw logo
+                        ctx.drawImage(logo, x, y, size, size);
+                        ctx.restore();
+                    };
+                    
+                    logo.src = URL.createObjectURL(logoFile);
+                }
+
+                // Add download button
+                const downloadBtn = document.createElement('button');
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Télécharger QR Code';
+                downloadBtn.className = 'download-btn';
+                downloadBtn.style.marginTop = '1rem';
+                downloadBtn.onclick = function() {
+                    const url = canvas.toDataURL('image/png');
+                    const a = document.createElement('a');
+                    a.download = 'qrcode.png';
+                    a.href = url;
+                    a.click();
+                };
+                qrcodeDiv.appendChild(downloadBtn);
+
+            } catch (error) {
+                console.error(error);
+                alert("Erreur lors de la génération du QR code.");
+            }
+        });
+
+        // Ajouter les traductions des réseaux sociaux
+        const translations = {
+            fr: {
+                title: "Générateur de QR Code",
+                person: "Personne",
+                organization: "Organisation",
+                name: "Nom",
+                firstName: "Prénom",
+                orgName: "Nom de l'organisation",
+                address: "Adresse",
+                website: "Site Web",
+                socialNetworks: "Réseaux Sociaux",
+                addLogo: "Ajouter un logo au QR code",
+                dropLogo: "Glissez votre logo ici ou cliquez pour sélectionner",
+                format: "Format: PNG, JPG (Max 2MB)",
+                qrColor: "Couleur du QR",
+                logoSize: "Taille du logo",
+                logoShape: "Forme du logo",
+                generate: "Générer QR Code",
+                download: "Télécharger QR Code",
+                error: "Erreur lors de la génération du QR code",
+                developedBy: "Développé par",
+                allRightsReserved: "Tous droits réservés",
+                facebook: "Facebook",
+                twitter: "Twitter",
+                linkedin: "LinkedIn",
+                instagram: "Instagram"
+            },
+            en: {
+                title: "QR Code Generator",
+                person: "Person",
+                organization: "Organization",
+                name: "Name",
+                firstName: "First Name",
+                orgName: "Organization Name",
+                address: "Address",
+                website: "Website",
+                socialNetworks: "Social Networks",
+                addLogo: "Add logo to QR code",
+                dropLogo: "Drop your logo here or click to select",
+                format: "Format: PNG, JPG (Max 2MB)",
+                qrColor: "QR Color",
+                logoSize: "Logo Size",
+                logoShape: "Logo Shape",
+                generate: "Generate QR Code",
+                download: "Download QR Code",
+                error: "Error generating QR code",
+                developedBy: "Developed by",
+                allRightsReserved: "All rights reserved",
+                facebook: "Facebook",
+                twitter: "Twitter",
+                linkedin: "LinkedIn",
+                instagram: "Instagram"
+            },
+            ar: {
+                title: "مولد رمز QR",
+                person: "شخص",
+                organization: "منظمة",
+                name: "اللقب",
+                firstName: "الاسم",
+                orgName: "اسم المنظمة",
+                address: "العنوان",
+                website: "الموقع الإلكتروني",
+                socialNetworks: "وسائل التواصل الاجتماعي",
+                addLogo: "إضافة شعار إلى رمز QR",
+                dropLogo: "اسحب الشعار هنا أو انقر للتحديد",
+                format: "الصيغة: PNG، JPG (الحد الأقصى 2MB)",
+                qrColor: "لون QR",
+                logoSize: "حجم الشعار",
+                logoShape: "شكل الشعار",
+                generate: "توليد رمز QR",
+                download: "تحميل رمز QR",
+                error: "خطأ في توليد رمز QR",
+                developedBy: "تم التطوير بواسطة",
+                allRightsReserved: "جميع الحقوق محفوظة",
+                facebook: "فايسبوك",
+                twitter: "تويتر",
+                linkedin: "لينكد إن",
+                instagram: "انستغرام"
+            }
+        };
+
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('change', function() {
+            document.documentElement.setAttribute('data-theme', 
+                this.checked ? 'dark' : 'light');
+        });
+
+        // Language change
+        document.getElementById('langSelect').addEventListener('change', function() {
+            updateLanguage(this.value);
+        });
+
+        function updateLanguage(lang) {
+            const t = translations[lang];
+            document.documentElement.setAttribute('lang', lang);
+            
+            // Update all elements with data-translate attribute
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (element.tagName === 'INPUT' && element.type === 'text') {
+                    element.placeholder = t[key];
+                } else if (element.tagName === 'BUTTON') {
+                    element.innerHTML = `<i class="fas fa-qrcode"></i> ${t[key]}`;
+                } else if (element.tagName === 'H2') {
+                    element.innerHTML = `<i class="fas fa-qrcode"></i> ${t[key]}`;
+                } else {
+                    element.textContent = t[key];
+                }
+            });
+
+            // Update social media labels and restore event listeners
+            const socialLabels = {
+                facebook: { icon: 'fab fa-facebook', text: t.facebook },
+                twitter: { icon: 'fab fa-twitter', text: t.twitter },
+                linkedin: { icon: 'fab fa-linkedin', text: t.linkedin },
+                instagram: { icon: 'fab fa-instagram', text: t.instagram }
+            };
+
+            // Update checkbox labels while preserving checked state and event listeners
+            document.querySelectorAll('.checkbox-group label').forEach(label => {
+                const input = label.querySelector('input');
+                if (input) {
+                    const socialType = input.value;
+                    const isChecked = input.checked;
+                    if (socialLabels[socialType]) {
+                        const newInput = input.cloneNode(true);
+                        newInput.checked = isChecked;
+                        
+                        // Recreate the label content
+                        label.innerHTML = '';
+                        label.appendChild(newInput);
+                        label.insertAdjacentHTML('beforeend', `
+                            <i class="${socialLabels[socialType].icon}"></i>
+                            ${socialLabels[socialType].text}
+                        `);
+
+                        // Reattach event listener
+                        newInput.addEventListener('change', function() {
+                            const inputDiv = document.getElementById(`${this.value}-input`);
+                            if (this.checked) {
+                                inputDiv.classList.remove('hidden');
+                            } else {
+                                inputDiv.classList.add('hidden');
+                                inputDiv.querySelector('input').value = '';
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Update input labels
+            document.querySelectorAll('.social-inputs .form-group label').forEach(label => {
+                const socialType = label.getAttribute('for');
+                if (socialType && socialLabels[socialType]) {
+                    label.textContent = `${socialLabels[socialType].text}:`;
+                }
+            });
+
+            // Update download button if exists
+            const downloadBtn = document.querySelector('.download-btn');
+            if (downloadBtn) {
+                downloadBtn.innerHTML = `<i class="fas fa-download"></i> ${t.download}`;
+            }
+
+            // Handle RTL for Arabic
+            document.body.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+            
+            // Update error message
+            window.errorMessage = t.error;
+        }
+
+        // Initialize with default language
+        updateLanguage('fr');
+    </script>
+</body>
+</html> 
