@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de QR Code</title>
+    <title>QR Studio | Générateur de QR Code</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -29,11 +29,13 @@
 
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-color);
+            background: radial-gradient(circle at top left, rgba(67, 97, 238, 0.15), transparent 30%),
+                        linear-gradient(135deg, #f8f9fa 0%, #e9efff 45%, #f5f7ff 100%);
             color: var(--text-color);
             line-height: 1.6;
             margin: 0;
             padding: 20px;
+            min-height: 100vh;
         }
 
         .form-container {
@@ -49,8 +51,17 @@
         h2 {
             color: var(--primary-color);
             text-align: center;
-            margin-bottom: 2rem;
-            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-size: 2.25rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #5f698f;
+            margin: 0 auto 2rem;
+            max-width: 640px;
+            font-size: 1rem;
+            line-height: 1.6;
         }
 
         .form-group {
@@ -356,6 +367,7 @@
         input[type="range"] {
             width: 100%;
             height: 6px;
+            appearance: none;
             -webkit-appearance: none;
             background: #e0e0e0;
             border-radius: 3px;
@@ -363,6 +375,7 @@
         }
 
         input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
             -webkit-appearance: none;
             width: 18px;
             height: 18px;
@@ -543,6 +556,7 @@
     </div>
     <div class="form-container">
         <h2 data-translate="title"><i class="fas fa-qrcode"></i> Générateur de QR Code</h2>
+        <p class="subtitle" data-translate="subtitle">Créez des QR codes élégants et personnalisés en quelques clics.</p>
         <form id="qrForm">
             <div class="type-selector">
                 <label>
@@ -680,9 +694,18 @@
                         <input type="color" id="qrColor" value="#000000">
                     </label>
                     <label>
+                        <span data-translate="bgColor">Couleur de fond</span>
+                        <input type="color" id="bgColor" value="#ffffff">
+                    </label>
+                    <label>
+                        <span data-translate="qrSizeLabel">Taille du QR</span>
+                        <input type="range" id="qrSize" min="256" max="1024" step="128" value="1024">
+                        <span id="qrSizeValue">1024px</span>
+                    </label>
+                    <label>
                         <span data-translate="logoSize">Taille du logo</span>
                         <input type="range" id="logoSize" min="5" max="40" value="25">
-                        <span id="logoSizeValue">25%</span>
+                        <span id="logoSizeValue">25% (260px)</span>
                     </label>
                     <label>
                         <span data-translate="logoShape">Forme du logo</span>
@@ -971,13 +994,16 @@
                 const logoFile = document.getElementById('logo').files[0];
 
                 // Generate QR code
+                const qrSizeValue = parseInt(document.getElementById('qrSize').value, 10) || 1024;
+                const bgColor = document.getElementById('bgColor').value;
+
                 const qr = new QRious({
                     element: canvas,
                     value: qrText,
-                    size: 1024,
+                    size: qrSizeValue,
                     level: 'H',
                     padding: 50,
-                    background: '#ffffff',
+                    background: bgColor,
                     foreground: qrColor
                 });
 
@@ -1037,6 +1063,9 @@
                 downloadBtn.innerHTML = '<i class="fas fa-download"></i> Télécharger QR Code';
                 downloadBtn.className = 'download-btn';
                 downloadBtn.style.marginTop = '1rem';
+                downloadBtn.setAttribute('data-translate', 'download');
+                downloadBtn.dataset.translateIcon = 'fas fa-download';
+                downloadBtn.type = 'button';
                 downloadBtn.onclick = function() {
                     const url = canvas.toDataURL('image/png');
                     const a = document.createElement('a');
@@ -1046,6 +1075,31 @@
                 };
                 qrcodeDiv.appendChild(downloadBtn);
 
+                const copyBtn = document.createElement('button');
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copier QR Code';
+                copyBtn.className = 'download-btn';
+                copyBtn.style.marginTop = '0.75rem';
+                copyBtn.type = 'button';
+                copyBtn.setAttribute('data-translate', 'copy');
+                copyBtn.dataset.translateIcon = 'fas fa-copy';
+                copyBtn.onclick = async function() {
+                    if (!navigator.clipboard) {
+                        alert('Votre navigateur ne prend pas en charge le presse-papiers.');
+                        return;
+                    }
+
+                    canvas.toBlob(async function(blob) {
+                        try {
+                            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                            alert('QR code copié dans le presse-papiers.');
+                        } catch (err) {
+                            console.error(err);
+                            alert('Impossible de copier le QR code.');
+                        }
+                    });
+                };
+                qrcodeDiv.appendChild(copyBtn);
+                updateLanguage(document.getElementById('langSelect').value);
             } catch (error) {
                 console.error(error);
                 alert("Erreur lors de la génération du QR code.");
@@ -1055,7 +1109,7 @@
         // Ajouter les traductions des réseaux sociaux
         const translations = {
             fr: {
-                title: "Générateur de QR Code",
+                title: "QR Studio",
                 person: "Personne",
                 organization: "Organisation",
                 name: "Nom",
@@ -1070,6 +1124,10 @@
                 qrColor: "Couleur du QR",
                 logoSize: "Taille du logo",
                 logoShape: "Forme du logo",
+                qrSizeLabel: "Taille du QR",
+                bgColor: "Couleur de fond",
+                copy: "Copier QR Code",
+                subtitle: "Créez des QR codes élégants et personnalisés en quelques clics.",
                 generate: "Générer QR Code",
                 download: "Télécharger QR Code",
                 error: "Erreur lors de la génération du QR code",
@@ -1081,7 +1139,7 @@
                 instagram: "Instagram"
             },
             en: {
-                title: "QR Code Generator",
+                title: "QR Studio",
                 person: "Person",
                 organization: "Organization",
                 name: "Name",
@@ -1096,6 +1154,10 @@
                 qrColor: "QR Color",
                 logoSize: "Logo Size",
                 logoShape: "Logo Shape",
+                qrSizeLabel: "QR Size",
+                bgColor: "Background Color",
+                copy: "Copy QR Code",
+                subtitle: "Create elegant, custom QR codes in just a few clicks.",
                 generate: "Generate QR Code",
                 download: "Download QR Code",
                 error: "Error generating QR code",
@@ -1107,7 +1169,7 @@
                 instagram: "Instagram"
             },
             ar: {
-                title: "مولد رمز QR",
+                title: "QR ستوديو",
                 person: "شخص",
                 organization: "منظمة",
                 name: "اللقب",
@@ -1122,6 +1184,10 @@
                 qrColor: "لون QR",
                 logoSize: "حجم الشعار",
                 logoShape: "شكل الشعار",
+                qrSizeLabel: "حجم QR",
+                bgColor: "لون الخلفية",
+                copy: "نسخ رمز QR",
+                subtitle: "أنشئ رموز QR أنيقة ومخصصة بنقرة واحدة.",
                 generate: "توليد رمز QR",
                 download: "تحميل رمز QR",
                 error: "خطأ في توليد رمز QR",
@@ -1155,7 +1221,8 @@
                 if (element.tagName === 'INPUT' && element.type === 'text') {
                     element.placeholder = t[key];
                 } else if (element.tagName === 'BUTTON') {
-                    element.innerHTML = `<i class="fas fa-qrcode"></i> ${t[key]}`;
+                    const iconClass = element.dataset.translateIcon || 'fas fa-qrcode';
+                    element.innerHTML = `<i class="${iconClass}"></i> ${t[key]}`;
                 } else if (element.tagName === 'H2') {
                     element.innerHTML = `<i class="fas fa-qrcode"></i> ${t[key]}`;
                 } else {

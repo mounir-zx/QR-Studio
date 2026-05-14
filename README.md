@@ -1,4 +1,4 @@
-# SmartQR 🚀
+# QR-Studio 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)
@@ -7,13 +7,13 @@
 
 ---
 
-**A smart, customizable QR code generator with logo embedding, social profiles, and multilingual UI.**
+**A modern QR code studio with logo support, social link generation, theme switching, and improved customization.**
 
-👉 **Live Demo:** [mounirverse.github.io/SmartQR](https://mounirverse.github.io/SmartQR/)
+👉 **Live Demo:** [mounirverse.github.io/QR-Studio](https://mounirverse.github.io/QR-Studio/)
 
 ---
 
-![SmartQR Interface](assets/screenshot.png) 
+![QR Studio Interface](assets/screenshot.png) 
 ---
 
 ## ✨ Features
@@ -23,6 +23,7 @@
 | 🎨 **Custom QR**        | Change colors, add logos, and adjust corner radius for personalized QR codes. |
 | 🌐 **Social Links**     | Direct QR links to Facebook, Twitter, LinkedIn, and Instagram profiles.      |
 | 🌙 **Dark Mode**        | Toggle between light and dark themes for a customized look.                   |
+| 🧩 **More Options**     | Customize QR background, size, logo shape, and copy directly to clipboard.    |
 | 🗣 **3 Languages**      | Supports English, French, and Arabic.                                       |
 | 📥 **Instant Download** | Save your QR code as a high-resolution PNG (up to 1024x1024).                |
 | 📱 **Mobile-Friendly**  | Fully responsive and works flawlessly on all devices.                        |
@@ -33,15 +34,16 @@
 
 ### Use Online
 
-1. **Visit** [mounirverse.github.io/SmartQR](https://mounirverse.github.io/SmartQR/) to start generating your QR codes instantly!
+1. **Visit** [mounirverse.github.io/QR-Studio](https://mounirverse.github.io/QR-Studio/) to start generating your QR codes instantly!
 
 ### Run Locally
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/mounirverse/SmartQR.git
-   cd SmartQR
-Open the app: Simply open index.html in your preferred browser to run the app locally.
+   git clone https://github.com/mounirverse/QR-Studio.git
+   cd QR-Studio
+   open index.html in your preferred browser to run the app locally.
+   ```
 
 🛠️ How It Works
 User Flow:
@@ -66,7 +68,7 @@ Hosting: GitHub Pages for live deployment.
 
 
 🌍 Live Demo
-Try it now: [SmartQR Demo](https://mounirverse.github.io/SmartQR/)
+Try it now: [QR Studio Demo](https://mounirverse.github.io/QR-Studio/)
 
 📜 License
 Open-source under the MIT License. Feel free to use, modify, and distribute this project, just provide attribution.
